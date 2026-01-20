@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site.name }} - {{ site.description }}{% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>{{ site.name }}</h1>
+    <p>{{ site.description }}</p>
+</section>
+
+<section class="posts-list">
+    <h2>Latest Posts</h2>
+
+    {% for post in posts %}
+    <article class="post-card">
+        {% if post.featured_image %}
+        <img src="{{ post.featured_image.sizes.medium }}" alt="{{ post.title }}" class="post-thumbnail">
+        {% endif %}
+
+        <div class="post-card-content">
+            <h3><a href="/post/{{ post.slug }}">{{ post.title }}</a></h3>
+            <time datetime="{{ post.date | date(format='%Y-%m-%d') }}">
+                {{ post.date | date(format="%B %d, %Y") }}
+            </time>
+            <p>{{ post.excerpt | truncate(length=120) }}</p>
+        </div>
+    </article>
+    {% empty %}
+    <p>No posts yet.</p>
+    {% endfor %}
+</section>
+
+{% if pagination.total > 1 %}
+{% include "parts/pagination.html" %}
+{% endif %}
+{% endblock %}

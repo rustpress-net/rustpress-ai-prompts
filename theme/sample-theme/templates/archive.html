@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if is_category %}{{ term.name }}{% elif is_author %}{{ author.name }}{% else %}Archive{% endif %} - {{ site.name }}
+{% endblock %}
+
+{% block body_class %}archive{% endblock %}
+
+{% block content %}
+<header class="archive-header">
+    {% if is_category %}
+    <h1>Category: {{ term.name }}</h1>
+    {% elif is_author %}
+    <h1>Posts by {{ author.name }}</h1>
+    {% else %}
+    <h1>Archive</h1>
+    {% endif %}
+</header>
+
+<div class="posts-list">
+    {% for post in posts %}
+    <article class="post-card">
+        <h2><a href="/post/{{ post.slug }}">{{ post.title }}</a></h2>
+        <time>{{ post.date | date(format="%B %d, %Y") }}</time>
+        <p>{{ post.excerpt | truncate(length=100) }}</p>
+    </article>
+    {% empty %}
+    <p>No posts found.</p>
+    {% endfor %}
+</div>
+
+{% if pagination.total > 1 %}
+{% include "parts/pagination.html" %}
+{% endif %}
+{% endblock %}

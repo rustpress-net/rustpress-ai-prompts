@@ -1,0 +1,26 @@
+<header class="site-header">
+    <div class="container">
+        <div class="site-branding">
+            {% if settings.site_logo %}
+            <a href="/" class="site-logo">
+                <img src="{{ settings.site_logo }}" alt="{{ site.name }}">
+            </a>
+            {% else %}
+            <a href="/" class="site-title">{{ site.name }}</a>
+            {% endif %}
+        </div>
+
+        <nav class="main-nav">
+            <ul>
+                <li><a href="/" {% if is_home %}class="active"{% endif %}>Home</a></li>
+                {% for item in menus.primary %}
+                <li>
+                    <a href="{{ item.url }}" {% if item.current %}class="active"{% endif %}>
+                        {{ item.title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+</header>

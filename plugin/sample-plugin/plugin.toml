@@ -1,0 +1,54 @@
+[plugin]
+id = "hello-world"
+name = "Hello World"
+version = "1.0.0"
+description = "A simple hello world plugin for RustPress"
+author = "RustPress Team"
+license = "MIT"
+min_rustpress_version = "1.0.0"
+tags = ["example", "starter"]
+category = "utility"
+
+# Settings
+[settings.schema.greeting]
+setting_type = "string"
+label = "Greeting Message"
+default = "Hello, World!"
+
+[settings.schema.show_date]
+setting_type = "boolean"
+label = "Show Current Date"
+default = true
+
+# Lifecycle Hooks
+[hooks]
+activate = "on_activate"
+deactivate = "on_deactivate"
+
+# REST API
+[api]
+namespace = "hello-world"
+version = "v1"
+
+[[api.endpoints]]
+path = "/greet"
+method = "GET"
+handler = "get_greeting"
+permission = "read"
+
+[[api.endpoints]]
+path = "/greet"
+method = "POST"
+handler = "set_greeting"
+permission = "edit_posts"
+
+# Shortcode
+[[shortcodes]]
+tag = "hello"
+handler = "render_hello"
+supports_content = false
+
+[[shortcodes.attributes]]
+name = "name"
+attr_type = "string"
+default = "World"

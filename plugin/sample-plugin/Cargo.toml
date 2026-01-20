@@ -1,0 +1,19 @@
+[package]
+name = "hello-world-plugin"
+version = "1.0.0"
+edition = "2021"
+description = "A simple hello world plugin for RustPress"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rustpress-plugins = { version = "1.0" }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["sync"] }
+axum = "0.7"
+chrono = "0.4"
+tracing = "0.1"

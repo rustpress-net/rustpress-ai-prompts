@@ -1,0 +1,57 @@
+[theme]
+id = "starter"
+name = "Starter Theme"
+version = "1.0.0"
+description = "A minimal starter theme for RustPress"
+author = "RustPress Team"
+license = "GPL-2.0-or-later"
+screenshot = "screenshot.png"
+requires_rustpress = ">=1.0.0"
+tags = ["minimal", "starter", "blog"]
+theme_type = "classic"
+
+# Templates
+[templates]
+directory = "templates"
+extension = "html"
+parts_directory = "parts"
+
+# Assets
+[[assets.css]]
+path = "assets/css/style.css"
+handle = "starter-styles"
+location = "header"
+
+[[assets.js]]
+path = "assets/js/main.js"
+handle = "starter-scripts"
+location = "footer"
+
+# Customizer Settings
+[settings.schema.primary_color]
+setting_type = "color"
+label = "Primary Color"
+default = "#3b82f6"
+
+[settings.schema.site_logo]
+setting_type = "image"
+label = "Site Logo"
+
+# Colors
+[colors]
+primary = "#3b82f6"
+text = "#1f2937"
+background = "#ffffff"
+muted = "#6b7280"
+
+# Layout
+[layout]
+container_width = 800
+mobile_breakpoint = 768
+
+# Supports
+[supports]
+posts = true
+pages = true
+custom_logo = true
+featured_images = true
