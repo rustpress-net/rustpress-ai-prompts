@@ -1,78 +1,13 @@
 -- RustPress Blog API - Initial Schema
-
--- User role enum
-CREATE TYPE user_role AS ENUM ('user', 'author', 'editor', 'admin');
-
--- User status enum
-CREATE TYPE user_status AS ENUM ('pending', 'active', 'suspended', 'deleted');
-
--- Users table (must be created first as other tables reference it)
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    role user_role DEFAULT 'user',
-    status user_status DEFAULT 'pending',
-    avatar VARCHAR(500),
-    bio TEXT,
-    website VARCHAR(500),
-    email_verified_at TIMESTAMPTZ,
-    last_login_at TIMESTAMPTZ,
-    last_login_ip VARCHAR(45),
-    failed_login_attempts INTEGER DEFAULT 0,
-    locked_until TIMESTAMPTZ,
-    password_changed_at TIMESTAMPTZ DEFAULT NOW(),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Refresh tokens table for JWT refresh token rotation
-CREATE TABLE IF NOT EXISTS refresh_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    expires_at TIMESTAMPTZ NOT NULL,
-    issued_at TIMESTAMPTZ DEFAULT NOW(),
-    revoked_at TIMESTAMPTZ,
-    replaced_by UUID REFERENCES refresh_tokens(id),
-    user_agent TEXT,
-    ip_address VARCHAR(45),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Password reset tokens
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    expires_at TIMESTAMPTZ NOT NULL,
-    used_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Email verification tokens
-CREATE TABLE IF NOT EXISTS email_verification_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    expires_at TIMESTAMPTZ NOT NULL,
-    verified_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Indexes for users
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_status ON users(status);
-
--- Indexes for refresh tokens
-CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
-CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at);
-
--- Indexes for password reset tokens
-CREATE INDEX idx_password_reset_user ON password_reset_tokens(user_id);
-CREATE INDEX idx_password_reset_expires ON password_reset_tokens(expires_at);
+--
+-- IMPORTANT: This migration requires the rustpress-auth plugin to be activated first.
+-- The auth plugin creates the following tables that this schema references:
+--   - users (with user_role and user_status enums)
+--   - refresh_tokens
+--   - password_reset_tokens
+--   - email_verification_tokens
+--
+-- If running without the auth plugin, uncomment the user tables section below.
 
 -- Post status enum
 CREATE TYPE post_status AS ENUM ('draft', 'published', 'scheduled', 'archived');

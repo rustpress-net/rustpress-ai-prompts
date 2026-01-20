@@ -3,6 +3,7 @@
 //! All configuration values are loaded from environment variables.
 //! No hardcoded secrets or sensitive data.
 
+use crate::error::AuthError;
 use std::env;
 
 /// Authentication configuration loaded from environment
@@ -55,7 +56,7 @@ impl AuthConfig {
     /// Load configuration from environment variables
     ///
     /// # Panics
-    /// Panics if required environment variables are not set
+    /// Panics if JWT_SECRET environment variable is not set
     pub fn from_env() -> Self {
         Self {
             jwt_secret: env::var("JWT_SECRET")
@@ -71,11 +72,9 @@ impl AuthConfig {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(604800), // 7 days default
 
-            jwt_issuer: env::var("JWT_ISSUER")
-                .unwrap_or_else(|_| "rustpress".to_string()),
+            jwt_issuer: env::var("JWT_ISSUER").unwrap_or_else(|_| "rustpress".to_string()),
 
-            jwt_audience: env::var("JWT_AUDIENCE")
-                .unwrap_or_else(|_| "rustpress-api".to_string()),
+            jwt_audience: env::var("JWT_AUDIENCE").unwrap_or_else(|_| "rustpress-api".to_string()),
 
             argon2_memory_cost: env::var("ARGON2_MEMORY_COST")
                 .ok()
@@ -125,21 +124,29 @@ impl AuthConfig {
     }
 
     /// Validate the configuration
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), AuthError> {
         if self.jwt_secret.len() < 32 {
-            return Err("JWT_SECRET must be at least 32 characters".to_string());
+            return Err(AuthError::Config(
+                "JWT_SECRET must be at least 32 characters".to_string(),
+            ));
         }
 
         if self.access_token_expiration <= 0 {
-            return Err("JWT_ACCESS_EXPIRATION must be positive".to_string());
+            return Err(AuthError::Config(
+                "JWT_ACCESS_EXPIRATION must be positive".to_string(),
+            ));
         }
 
         if self.refresh_token_expiration <= self.access_token_expiration {
-            return Err("JWT_REFRESH_EXPIRATION must be greater than JWT_ACCESS_EXPIRATION".to_string());
+            return Err(AuthError::Config(
+                "JWT_REFRESH_EXPIRATION must be greater than JWT_ACCESS_EXPIRATION".to_string(),
+            ));
         }
 
         if self.min_password_length < 8 {
-            return Err("MIN_PASSWORD_LENGTH must be at least 8".to_string());
+            return Err(AuthError::Config(
+                "MIN_PASSWORD_LENGTH must be at least 8".to_string(),
+            ));
         }
 
         Ok(())
@@ -170,5 +177,27 @@ mod tests {
         };
 
         assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_config_validation_short_secret() {
+        let config = AuthConfig {
+            jwt_secret: "short".to_string(),
+            access_token_expiration: 900,
+            refresh_token_expiration: 604800,
+            jwt_issuer: "test".to_string(),
+            jwt_audience: "test".to_string(),
+            argon2_memory_cost: 65536,
+            argon2_time_cost: 3,
+            argon2_parallelism: 4,
+            max_login_attempts: 5,
+            lockout_duration: 900,
+            password_reset_expiration: 3600,
+            email_verification_expiration: 86400,
+            min_password_length: 8,
+            require_email_verification: false,
+        };
+
+        assert!(config.validate().is_err());
     }
 }

@@ -35,6 +35,21 @@ impl UserRole {
     pub fn can_moderate(&self) -> bool {
         matches!(self, UserRole::Editor | UserRole::Admin)
     }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            UserRole::User => "user",
+            UserRole::Author => "author",
+            UserRole::Editor => "editor",
+            UserRole::Admin => "admin",
+        }
+    }
+}
+
+impl std::fmt::Display for UserRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 /// User status enum matching database type
@@ -226,6 +241,7 @@ pub struct UserResponse {
 
 impl From<User> for UserResponse {
     fn from(user: User) -> Self {
+        let email_verified = user.is_email_verified();
         Self {
             id: user.id,
             email: user.email,
@@ -234,6 +250,22 @@ impl From<User> for UserResponse {
             avatar: user.avatar,
             bio: user.bio,
             website: user.website,
+            email_verified,
+            created_at: user.created_at,
+        }
+    }
+}
+
+impl From<&User> for UserResponse {
+    fn from(user: &User) -> Self {
+        Self {
+            id: user.id,
+            email: user.email.clone(),
+            name: user.name.clone(),
+            role: user.role.clone(),
+            avatar: user.avatar.clone(),
+            bio: user.bio.clone(),
+            website: user.website.clone(),
             email_verified: user.is_email_verified(),
             created_at: user.created_at,
         }
@@ -313,69 +345,4 @@ pub struct RefreshTokenClaims {
     pub exp: i64,
     /// Issuer
     pub iss: String,
-}
-
-// ============================================
-// Error Types
-// ============================================
-
-/// Authentication errors
-#[derive(Debug, Clone, thiserror::Error)]
-pub enum AuthError {
-    #[error("Invalid credentials")]
-    InvalidCredentials,
-
-    #[error("Account is locked. Try again later")]
-    AccountLocked,
-
-    #[error("Account is not active")]
-    AccountNotActive,
-
-    #[error("Email not verified")]
-    EmailNotVerified,
-
-    #[error("Invalid or expired token")]
-    InvalidToken,
-
-    #[error("Token has been revoked")]
-    TokenRevoked,
-
-    #[error("User not found")]
-    UserNotFound,
-
-    #[error("Email already registered")]
-    EmailExists,
-
-    #[error("Password does not meet requirements")]
-    WeakPassword,
-
-    #[error("Validation error: {0}")]
-    Validation(String),
-
-    #[error("Database error: {0}")]
-    Database(String),
-
-    #[error("Internal error")]
-    Internal,
-}
-
-impl From<sqlx::Error> for AuthError {
-    fn from(err: sqlx::Error) -> Self {
-        tracing::error!("Database error: {:?}", err);
-        AuthError::Database(err.to_string())
-    }
-}
-
-impl From<argon2::password_hash::Error> for AuthError {
-    fn from(err: argon2::password_hash::Error) -> Self {
-        tracing::error!("Password hashing error: {:?}", err);
-        AuthError::Internal
-    }
-}
-
-impl From<jsonwebtoken::errors::Error> for AuthError {
-    fn from(err: jsonwebtoken::errors::Error) -> Self {
-        tracing::error!("JWT error: {:?}", err);
-        AuthError::InvalidToken
-    }
 }

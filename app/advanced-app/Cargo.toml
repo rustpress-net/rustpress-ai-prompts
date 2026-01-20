@@ -9,25 +9,35 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
+# RustPress framework (not yet published)
 rustpress-apps = "0.1"
+
+# Authentication plugin - provides user auth, JWT, and middleware
+# Use path dependency during development:
+# rustpress-auth = { path = "../../plugin/auth-plugin" }
+rustpress-auth = "1.0"
+
+# Web framework
 axum = { version = "0.7", features = ["multipart"] }
 tokio = { version = "1", features = ["full"] }
+
+# Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Database
 sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
+
+# Utilities
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1"
 validator = { version = "0.18", features = ["derive"] }
 tracing = "0.1"
+
+# Blog-specific
 slug = "0.1"
 pulldown-cmark = "0.10"
 rss = "2"
 mime_guess = "2"
 tokio-util = { version = "0.7", features = ["io"] }
-
-# Authentication dependencies
-jsonwebtoken = "9"
-argon2 = "0.5"
-rand = "0.8"
-async-trait = "0.1"

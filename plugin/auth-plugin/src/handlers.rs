@@ -2,14 +2,19 @@
 //!
 //! REST API endpoints for authentication operations.
 
-use crate::auth::models::*;
-use crate::auth::service::AuthService;
+use crate::error::AuthError;
 use crate::extractors::{AuthUser, ClientInfo};
+use crate::middleware;
+use crate::models::*;
+use crate::service::AuthService;
+
 use axum::{
     extract::State,
     http::StatusCode,
+    middleware as axum_middleware,
     response::IntoResponse,
-    Json,
+    routing::{get, post},
+    Json, Router,
 };
 use std::sync::Arc;
 use validator::Validate;
@@ -18,80 +23,39 @@ use validator::Validate;
 pub type AuthState = Arc<AuthService>;
 
 // ============================================
-// Error Response Handling
+// Route Builder
 // ============================================
 
-impl IntoResponse for AuthError {
-    fn into_response(self) -> axum::response::Response {
-        let (status, error_code, message) = match &self {
-            AuthError::InvalidCredentials => (
-                StatusCode::UNAUTHORIZED,
-                "invalid_credentials",
-                self.to_string(),
-            ),
-            AuthError::AccountLocked => (
-                StatusCode::FORBIDDEN,
-                "account_locked",
-                self.to_string(),
-            ),
-            AuthError::AccountNotActive => (
-                StatusCode::FORBIDDEN,
-                "account_not_active",
-                self.to_string(),
-            ),
-            AuthError::EmailNotVerified => (
-                StatusCode::FORBIDDEN,
-                "email_not_verified",
-                self.to_string(),
-            ),
-            AuthError::InvalidToken | AuthError::TokenRevoked => (
-                StatusCode::UNAUTHORIZED,
-                "invalid_token",
-                self.to_string(),
-            ),
-            AuthError::UserNotFound => (
-                StatusCode::NOT_FOUND,
-                "user_not_found",
-                self.to_string(),
-            ),
-            AuthError::EmailExists => (
-                StatusCode::CONFLICT,
-                "email_exists",
-                self.to_string(),
-            ),
-            AuthError::WeakPassword => (
-                StatusCode::BAD_REQUEST,
-                "weak_password",
-                self.to_string(),
-            ),
-            AuthError::Validation(msg) => (
-                StatusCode::BAD_REQUEST,
-                "validation_error",
-                msg.clone(),
-            ),
-            AuthError::Database(_) | AuthError::Internal => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "internal_error",
-                "An internal error occurred".to_string(),
-            ),
-        };
+/// Create authentication routes
+pub fn create_routes(auth_service: Arc<AuthService>) -> Router {
+    // Public routes (no authentication required)
+    let public = Router::new()
+        .route("/auth/register", post(register))
+        .route("/auth/login", post(login))
+        .route("/auth/logout", post(logout))
+        .route("/auth/refresh", post(refresh_token))
+        .route("/auth/forgot-password", post(forgot_password))
+        .route("/auth/reset-password", post(reset_password))
+        .route("/auth/verify-email", post(verify_email));
 
-        (
-            status,
-            Json(serde_json::json!({
-                "error": error_code,
-                "message": message
-            })),
-        )
-            .into_response()
-    }
+    // Protected routes (require authentication)
+    let protected = Router::new()
+        .route("/auth/me", get(get_current_user))
+        .route("/auth/change-password", post(change_password))
+        .route("/auth/resend-verification", post(resend_verification))
+        .layer(axum_middleware::from_fn(middleware::require_auth));
+
+    Router::new()
+        .merge(public)
+        .merge(protected)
+        .with_state(auth_service)
 }
 
 // ============================================
 // Registration
 // ============================================
 
-/// POST /api/v1/auth/register
+/// POST /auth/register
 ///
 /// Register a new user account
 pub async fn register(
@@ -105,8 +69,7 @@ pub async fn register(
     // Register user
     let user = auth.register(req).await?;
 
-    // Create email verification token if needed
-    // In production, you would send this via email
+    // Create email verification token
     let verification_token = auth.create_email_verification(user.id).await?;
 
     tracing::info!(
@@ -129,7 +92,7 @@ pub async fn register(
 // Login / Logout
 // ============================================
 
-/// POST /api/v1/auth/login
+/// POST /auth/login
 ///
 /// Authenticate user and return access/refresh tokens
 pub async fn login(
@@ -147,7 +110,7 @@ pub async fn login(
     Ok(Json(response))
 }
 
-/// POST /api/v1/auth/logout
+/// POST /auth/logout
 ///
 /// Revoke refresh token and logout user
 pub async fn logout(
@@ -163,7 +126,7 @@ pub async fn logout(
 // Token Refresh
 // ============================================
 
-/// POST /api/v1/auth/refresh
+/// POST /auth/refresh
 ///
 /// Refresh access token using refresh token
 pub async fn refresh_token(
@@ -183,7 +146,7 @@ pub async fn refresh_token(
 // Password Management
 // ============================================
 
-/// POST /api/v1/auth/forgot-password
+/// POST /auth/forgot-password
 ///
 /// Initiate password reset process
 pub async fn forgot_password(
@@ -206,7 +169,7 @@ pub async fn forgot_password(
     })))
 }
 
-/// POST /api/v1/auth/reset-password
+/// POST /auth/reset-password
 ///
 /// Complete password reset with token
 pub async fn reset_password(
@@ -223,12 +186,12 @@ pub async fn reset_password(
     )))
 }
 
-/// POST /api/v1/auth/change-password
+/// POST /auth/change-password
 ///
 /// Change password for authenticated user
 pub async fn change_password(
     State(auth): State<AuthState>,
-    AuthUser(user): AuthUser,
+    user: AuthUser,
     Json(req): Json<ChangePasswordRequest>,
 ) -> Result<impl IntoResponse, AuthError> {
     req.validate()
@@ -245,7 +208,7 @@ pub async fn change_password(
 // Email Verification
 // ============================================
 
-/// POST /api/v1/auth/verify-email
+/// POST /auth/verify-email
 ///
 /// Verify email address with token
 pub async fn verify_email(
@@ -263,14 +226,20 @@ pub async fn verify_email(
     })))
 }
 
-/// POST /api/v1/auth/resend-verification
+/// POST /auth/resend-verification
 ///
 /// Resend email verification token
 pub async fn resend_verification(
     State(auth): State<AuthState>,
-    AuthUser(user): AuthUser,
+    user: AuthUser,
 ) -> Result<impl IntoResponse, AuthError> {
-    if user.email_verified_at.is_some() {
+    // Get full user to check email verification status
+    let full_user = auth
+        .get_user(user.id)
+        .await?
+        .ok_or(AuthError::UserNotFound)?;
+
+    if full_user.email_verified_at.is_some() {
         return Ok(Json(serde_json::json!({
             "message": "Email is already verified"
         })));
@@ -290,20 +259,16 @@ pub async fn resend_verification(
 // User Profile
 // ============================================
 
-/// GET /api/v1/auth/me
+/// GET /auth/me
 ///
 /// Get current user profile
-pub async fn get_current_user(
-    AuthUser(user): AuthUser,
-) -> Result<impl IntoResponse, AuthError> {
-    // Build response from extractors::User (derived from JWT claims)
+pub async fn get_current_user(user: AuthUser) -> Result<impl IntoResponse, AuthError> {
     Ok(Json(serde_json::json!({
         "user": {
             "id": user.id,
             "email": user.email,
             "name": user.name,
-            "role": user.role,
-            "email_verified": user.email_verified_at.is_some()
+            "role": user.role
         }
     })))
 }
