@@ -1,0 +1,227 @@
+# RustPress Advanced Functions - Comprehensive Hooks System
+
+[function]
+name = "advanced-hooks"
+display_name = "Advanced Hooks System"
+version = "1.0.0"
+description = "Comprehensive hooks implementation with middleware, caching, events, and utilities"
+author = "RustPress Team"
+license = "MIT"
+
+# Minimum RustPress version
+rustpress_version = ">=0.1.0"
+
+# Entry point
+entry = "src/lib.rs"
+
+# ============================================
+# Action Hooks Registration
+# ============================================
+
+[[hooks.actions]]
+hook = "init"
+handler = "actions::on_init"
+priority = 1
+description = "Initialize advanced features on system startup"
+
+[[hooks.actions]]
+hook = "after_setup_theme"
+handler = "actions::setup_theme_features"
+priority = 10
+description = "Configure theme-related features"
+
+[[hooks.actions]]
+hook = "pre_get_posts"
+handler = "actions::modify_query"
+priority = 10
+description = "Modify post queries globally"
+
+[[hooks.actions]]
+hook = "save_post"
+handler = "actions::on_post_save"
+priority = 10
+description = "Handle post save events"
+
+[[hooks.actions]]
+hook = "delete_post"
+handler = "actions::on_post_delete"
+priority = 10
+description = "Handle post deletion events"
+
+[[hooks.actions]]
+hook = "user_register"
+handler = "actions::on_user_register"
+priority = 10
+description = "Welcome new users"
+
+[[hooks.actions]]
+hook = "user_login"
+handler = "actions::on_user_login"
+priority = 10
+description = "Track user login activity"
+
+[[hooks.actions]]
+hook = "comment_post"
+handler = "actions::on_new_comment"
+priority = 10
+description = "Process new comments"
+
+[[hooks.actions]]
+hook = "transition_post_status"
+handler = "actions::on_status_change"
+priority = 10
+description = "Handle post status transitions"
+
+[[hooks.actions]]
+hook = "send_email"
+handler = "actions::on_email_send"
+priority = 5
+description = "Enhance email functionality"
+
+# ============================================
+# Filter Hooks Registration
+# ============================================
+
+[[hooks.filters]]
+hook = "the_content"
+handler = "filters::process_content"
+priority = 10
+description = "Process and enhance post content"
+
+[[hooks.filters]]
+hook = "the_title"
+handler = "filters::process_title"
+priority = 10
+description = "Process post titles"
+
+[[hooks.filters]]
+hook = "the_excerpt"
+handler = "filters::auto_excerpt"
+priority = 10
+description = "Generate smart excerpts"
+
+[[hooks.filters]]
+hook = "body_class"
+handler = "filters::add_body_classes"
+priority = 10
+description = "Add custom body classes"
+
+[[hooks.filters]]
+hook = "post_class"
+handler = "filters::add_post_classes"
+priority = 10
+description = "Add custom post classes"
+
+[[hooks.filters]]
+hook = "nav_menu_item_args"
+handler = "filters::menu_item_args"
+priority = 10
+description = "Customize menu items"
+
+[[hooks.filters]]
+hook = "upload_mimes"
+handler = "filters::extend_mime_types"
+priority = 10
+description = "Allow additional file types"
+
+[[hooks.filters]]
+hook = "sanitize_file_name"
+handler = "filters::clean_filename"
+priority = 10
+description = "Sanitize uploaded file names"
+
+[[hooks.filters]]
+hook = "pre_option"
+handler = "filters::cache_option"
+priority = 1
+description = "Cache option lookups"
+
+[[hooks.filters]]
+hook = "widget_text"
+handler = "filters::process_widget_text"
+priority = 10
+description = "Process text widget content"
+
+[[hooks.filters]]
+hook = "comment_text"
+handler = "filters::process_comment"
+priority = 10
+description = "Process and sanitize comments"
+
+[[hooks.filters]]
+hook = "login_redirect"
+handler = "filters::custom_login_redirect"
+priority = 10
+description = "Custom post-login redirection"
+
+[[hooks.filters]]
+hook = "rest_pre_dispatch"
+handler = "filters::api_middleware"
+priority = 1
+description = "API request middleware"
+
+[[hooks.filters]]
+hook = "query_vars"
+handler = "filters::add_query_vars"
+priority = 10
+description = "Register custom query variables"
+
+[[hooks.filters]]
+hook = "request"
+handler = "filters::modify_request"
+priority = 10
+description = "Modify incoming requests"
+
+# ============================================
+# Shortcodes
+# ============================================
+
+[[shortcodes]]
+tag = "button"
+handler = "shortcodes::button"
+description = "Render a styled button"
+
+[[shortcodes]]
+tag = "alert"
+handler = "shortcodes::alert"
+description = "Display an alert box"
+
+[[shortcodes]]
+tag = "accordion"
+handler = "shortcodes::accordion"
+description = "Collapsible accordion section"
+
+[[shortcodes]]
+tag = "tabs"
+handler = "shortcodes::tabs"
+description = "Tabbed content container"
+
+[[shortcodes]]
+tag = "card"
+handler = "shortcodes::card"
+description = "Content card with optional image"
+
+[[shortcodes]]
+tag = "recent_posts"
+handler = "shortcodes::recent_posts"
+description = "Display recent posts"
+
+[[shortcodes]]
+tag = "user_info"
+handler = "shortcodes::user_info"
+description = "Display current user information"
+
+[[shortcodes]]
+tag = "site_stats"
+handler = "shortcodes::site_stats"
+description = "Display site statistics"
+
+[[shortcodes]]
+tag = "code"
+handler = "shortcodes::code_block"
+description = "Syntax-highlighted code block"
+
+[[shortcodes]]
+tag = "embed"
+handler = "shortcodes::smart_embed"
+description = "Smart embed for various platforms"

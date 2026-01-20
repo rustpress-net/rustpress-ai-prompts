@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site.name }}{% if site.tagline %} - {{ site.tagline }}{% endif %}{% endblock %}
+
+{% block body_class %}home blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    {# Optional Hero Section on Homepage #}
+    {% if is_front_page and theme.show_hero %}
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">{{ theme.hero_title | default(value=site.name) }}</h1>
+            <p class="hero-subtitle">{{ theme.hero_subtitle | default(value=site.tagline) }}</p>
+            {% if theme.hero_cta_text %}
+            <a href="{{ theme.hero_cta_url }}" class="btn btn-primary btn-lg">
+                {{ theme.hero_cta_text }}
+            </a>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="content-area {% if theme.sidebar_position != 'none' %}has-sidebar{% endif %}">
+        {# Main Content #}
+        <div class="main-content">
+            {% if posts %}
+            <div class="posts-grid">
+                {% for post in posts %}
+                <article class="post-card" id="post-{{ post.id }}">
+                    {% if post.featured_image %}
+                    <div class="post-thumbnail">
+                        <a href="{{ post.url }}">
+                            <img src="{{ post.featured_image | image_url(size='card') }}"
+                                 alt="{{ post.title }}"
+                                 loading="lazy">
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="post-content">
+                        {# Categories #}
+                        {% if post.categories %}
+                        <div class="post-categories">
+                            {% for category in post.categories %}
+                            <a href="{{ category.url }}" class="category-link">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <header class="post-header">
+                            <h2 class="post-title">
+                                <a href="{{ post.url }}">{{ post.title }}</a>
+                            </h2>
+                        </header>
+
+                        <div class="post-excerpt">
+                            {{ post.excerpt | truncate(length=150) }}
+                        </div>
+
+                        <footer class="post-meta">
+                            <div class="post-author">
+                                {% if post.author.avatar %}
+                                <img src="{{ post.author.avatar | image_url(size='avatar') }}"
+                                     alt="{{ post.author.name }}"
+                                     class="author-avatar">
+                                {% endif %}
+                                <span class="author-name">{{ post.author.name }}</span>
+                            </div>
+                            <time class="post-date" datetime="{{ post.published_at | date(format='%Y-%m-%d') }}">
+                                {{ post.published_at | date(format='%B %d, %Y') }}
+                            </time>
+                        </footer>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            {# Pagination #}
+            {% if pagination %}
+            {% include "partials/pagination.html" %}
+            {% endif %}
+
+            {% else %}
+            <div class="no-posts">
+                <h2>No posts found</h2>
+                <p>It looks like there aren't any posts yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Sidebar #}
+        {% if theme.sidebar_position != 'none' %}
+        <aside class="sidebar sidebar-{{ theme.sidebar_position }}">
+            {{ widgets("sidebar") }}
+        </aside>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{# Site Header #}
+<header class="site-header {{ theme.header_layout | default(value='standard') }}"
+        {% if theme.sticky_header %}data-sticky="true"{% endif %}>
+    <div class="container">
+        <div class="header-inner">
+            {# Logo / Site Title #}
+            <div class="site-branding">
+                {% if site.logo %}
+                <a href="/" class="custom-logo-link">
+                    <img src="{{ site.logo }}" alt="{{ site.name }}" class="custom-logo">
+                </a>
+                {% else %}
+                <a href="/" class="site-title">{{ site.name }}</a>
+                {% endif %}
+
+                {% if site.tagline and theme.header_layout == 'stacked' %}
+                <p class="site-tagline">{{ site.tagline }}</p>
+                {% endif %}
+            </div>
+
+            {# Primary Navigation #}
+            <nav class="primary-navigation" aria-label="Primary">
+                {{ menu("primary", class="nav-menu") }}
+            </nav>
+
+            {# Header Actions #}
+            <div class="header-actions">
+                {# Search Toggle #}
+                {% if theme.show_search %}
+                <button class="search-toggle" aria-label="Search" aria-expanded="false">
+                    <svg class="icon-search" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                {% endif %}
+
+                {# Theme Toggle (Dark/Light) #}
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+
+                {# Header CTA Widget Area #}
+                {% if widgets("header_cta") %}
+                <div class="header-cta">
+                    {{ widgets("header_cta") }}
+                </div>
+                {% endif %}
+
+                {# Mobile Menu Toggle #}
+                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+                    <span class="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        {# Search Form (Hidden by default) #}
+        <div class="header-search" hidden>
+            <form role="search" method="get" action="/search" class="search-form">
+                <label class="screen-reader-text" for="header-search-input">Search</label>
+                <input type="search"
+                       id="header-search-input"
+                       class="search-field"
+                       placeholder="Search..."
+                       name="q"
+                       autocomplete="off">
+                <button type="submit" class="search-submit">
+                    <span class="screen-reader-text">Search</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+            <button class="search-close" aria-label="Close search">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {# Mobile Navigation #}
+    <nav class="mobile-navigation" hidden aria-label="Mobile">
+        {{ menu("mobile", class="mobile-menu") }}
+    </nav>
+</header>

@@ -1,0 +1,64 @@
+{# Site Footer #}
+<footer class="site-footer">
+    {# Footer Widgets #}
+    {% set footer_layout = theme.footer_layout | default(value='4-columns') %}
+    {% set columns = footer_layout | replace(from='-columns', to='') | int %}
+
+    {% if widgets("footer_1") or widgets("footer_2") or widgets("footer_3") or widgets("footer_4") %}
+    <div class="footer-widgets">
+        <div class="container">
+            <div class="footer-widgets-grid columns-{{ columns }}">
+                {% if columns >= 1 and widgets("footer_1") %}
+                <div class="footer-widget-area">
+                    {{ widgets("footer_1") }}
+                </div>
+                {% endif %}
+
+                {% if columns >= 2 and widgets("footer_2") %}
+                <div class="footer-widget-area">
+                    {{ widgets("footer_2") }}
+                </div>
+                {% endif %}
+
+                {% if columns >= 3 and widgets("footer_3") %}
+                <div class="footer-widget-area">
+                    {{ widgets("footer_3") }}
+                </div>
+                {% endif %}
+
+                {% if columns >= 4 and widgets("footer_4") %}
+                <div class="footer-widget-area">
+                    {{ widgets("footer_4") }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Footer Bottom #}
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="footer-bottom-inner">
+                {# Copyright #}
+                <div class="copyright">
+                    <p>&copy; {{ theme.footer_copyright | default(value='Your Company. All rights reserved.') }}</p>
+                </div>
+
+                {# Footer Navigation #}
+                {% if menu("footer") %}
+                <nav class="footer-navigation" aria-label="Footer">
+                    {{ menu("footer", class="footer-menu") }}
+                </nav>
+                {% endif %}
+
+                {# Social Links #}
+                {% if menu("social") %}
+                <div class="social-links">
+                    {{ menu("social", class="social-menu", walker="social_menu_walker") }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</footer>

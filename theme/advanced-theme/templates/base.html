@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="{{ site.language | default(value='en') }}"
+      class="{{ theme.color_scheme }}"
+      data-theme="{{ theme.color_scheme }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ page.meta_description | default(value=site.description) }}">
+
+    {% block head %}
+    <title>{% block title %}{{ page.title }} - {{ site.name }}{% endblock %}</title>
+    {% endblock %}
+
+    {# Customizer CSS Variables #}
+    <style>
+        :root {
+            --color-primary: {{ theme.primary_color | default(value='#3b82f6') }};
+            --color-secondary: {{ theme.secondary_color | default(value='#64748b') }};
+            --color-accent: {{ theme.accent_color | default(value='#f59e0b') }};
+            --font-heading: '{{ theme.heading_font | default(value='Inter') }}', sans-serif;
+            --font-body: '{{ theme.body_font | default(value='Inter') }}', sans-serif;
+            --font-size-base: {{ theme.base_font_size | default(value=16) }}px;
+            --container-width: {{ theme.container_width | default(value=1280) }}px;
+        }
+    </style>
+
+    {# Enqueue theme styles #}
+    {{ enqueue_styles() }}
+
+    {# Favicon #}
+    {% if site.favicon %}
+    <link rel="icon" href="{{ site.favicon }}">
+    {% endif %}
+
+    {# RSS Feed #}
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS" href="/feed">
+
+    {# Additional head content #}
+    {{ head() }}
+</head>
+<body class="{% block body_class %}page{% endblock %} {{ page.template | default(value='') }}"
+      data-sidebar="{{ theme.sidebar_position | default(value='right') }}">
+
+    {# Skip to content link for accessibility #}
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    {% block header %}
+    {% include "partials/header.html" %}
+    {% endblock %}
+
+    <main id="main-content" class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    {% include "partials/footer.html" %}
+    {% endblock %}
+
+    {# Back to top button #}
+    {% if theme.show_back_to_top %}
+    <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+    {% endif %}
+
+    {# Enqueue theme scripts #}
+    {{ enqueue_scripts() }}
+
+    {# Footer scripts #}
+    {{ footer() }}
+</body>
+</html>

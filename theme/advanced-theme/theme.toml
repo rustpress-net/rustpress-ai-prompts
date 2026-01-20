@@ -1,0 +1,350 @@
+# RustPress Business Theme - Advanced Theme Manifest
+
+[theme]
+name = "business-starter"
+display_name = "Business Starter"
+version = "1.0.0"
+description = "A professional business theme with dark mode, customizer, and block patterns"
+author = "RustPress Team"
+license = "MIT"
+homepage = "https://rustpress.dev/themes/business-starter"
+repository = "https://github.com/rustpress/business-starter"
+preview_url = "https://demo.rustpress.dev/business-starter"
+screenshot = "screenshot.png"
+tags = ["business", "professional", "dark-mode", "customizable", "responsive"]
+
+# Minimum RustPress version required
+rustpress_version = ">=0.1.0"
+
+# Parent theme (if this is a child theme)
+# parent = "base-theme"
+
+[theme.support]
+# Core features this theme supports
+title_tag = true
+post_thumbnails = true
+custom_logo = true
+custom_background = true
+custom_header = true
+html5 = ["comment-list", "comment-form", "search-form", "gallery", "caption"]
+post_formats = ["aside", "gallery", "image", "video", "quote", "link"]
+responsive_embeds = true
+block_templates = true
+block_template_parts = true
+
+[theme.support.custom_header]
+width = 1920
+height = 600
+flex_width = true
+flex_height = true
+header_text = true
+
+[theme.support.custom_logo]
+width = 200
+height = 80
+flex_width = true
+flex_height = true
+
+[theme.image_sizes]
+thumbnail = { width = 150, height = 150, crop = true }
+medium = { width = 300, height = 300, crop = false }
+large = { width = 1024, height = 1024, crop = false }
+hero = { width = 1920, height = 800, crop = true }
+card = { width = 400, height = 300, crop = true }
+avatar = { width = 96, height = 96, crop = true }
+
+[theme.menus]
+primary = "Primary Navigation"
+footer = "Footer Navigation"
+social = "Social Links"
+mobile = "Mobile Menu"
+
+[theme.widget_areas]
+sidebar = { name = "Main Sidebar", description = "Appears on posts and pages with sidebar" }
+footer_1 = { name = "Footer Column 1", description = "First footer widget area" }
+footer_2 = { name = "Footer Column 2", description = "Second footer widget area" }
+footer_3 = { name = "Footer Column 3", description = "Third footer widget area" }
+footer_4 = { name = "Footer Column 4", description = "Fourth footer widget area" }
+header_cta = { name = "Header CTA", description = "Call-to-action area in header" }
+
+[theme.customizer]
+# Customizer panels and sections
+
+[[theme.customizer.panels]]
+id = "theme_options"
+title = "Theme Options"
+priority = 30
+
+[[theme.customizer.sections]]
+id = "colors"
+title = "Colors"
+panel = "theme_options"
+priority = 10
+
+[[theme.customizer.sections]]
+id = "typography"
+title = "Typography"
+panel = "theme_options"
+priority = 20
+
+[[theme.customizer.sections]]
+id = "layout"
+title = "Layout"
+panel = "theme_options"
+priority = 30
+
+[[theme.customizer.sections]]
+id = "header_options"
+title = "Header"
+panel = "theme_options"
+priority = 40
+
+[[theme.customizer.sections]]
+id = "footer_options"
+title = "Footer"
+panel = "theme_options"
+priority = 50
+
+# Customizer settings
+
+[[theme.customizer.settings]]
+id = "color_scheme"
+section = "colors"
+type = "select"
+label = "Color Scheme"
+default = "light"
+choices = [
+    { value = "light", label = "Light" },
+    { value = "dark", label = "Dark" },
+    { value = "auto", label = "Auto (System)" },
+]
+description = "Choose the default color scheme"
+
+[[theme.customizer.settings]]
+id = "primary_color"
+section = "colors"
+type = "color"
+label = "Primary Color"
+default = "#3b82f6"
+description = "Main accent color used throughout the theme"
+
+[[theme.customizer.settings]]
+id = "secondary_color"
+section = "colors"
+type = "color"
+label = "Secondary Color"
+default = "#64748b"
+description = "Secondary accent color"
+
+[[theme.customizer.settings]]
+id = "accent_color"
+section = "colors"
+type = "color"
+label = "Accent Color"
+default = "#f59e0b"
+description = "Used for highlights and CTAs"
+
+[[theme.customizer.settings]]
+id = "heading_font"
+section = "typography"
+type = "select"
+label = "Heading Font"
+default = "Inter"
+choices = [
+    { value = "Inter", label = "Inter" },
+    { value = "Poppins", label = "Poppins" },
+    { value = "Roboto", label = "Roboto" },
+    { value = "Open Sans", label = "Open Sans" },
+    { value = "Playfair Display", label = "Playfair Display" },
+]
+
+[[theme.customizer.settings]]
+id = "body_font"
+section = "typography"
+type = "select"
+label = "Body Font"
+default = "Inter"
+choices = [
+    { value = "Inter", label = "Inter" },
+    { value = "Roboto", label = "Roboto" },
+    { value = "Open Sans", label = "Open Sans" },
+    { value = "Lato", label = "Lato" },
+    { value = "Source Sans Pro", label = "Source Sans Pro" },
+]
+
+[[theme.customizer.settings]]
+id = "base_font_size"
+section = "typography"
+type = "range"
+label = "Base Font Size"
+default = 16
+min = 14
+max = 20
+step = 1
+description = "Base font size in pixels"
+
+[[theme.customizer.settings]]
+id = "container_width"
+section = "layout"
+type = "range"
+label = "Container Width"
+default = 1280
+min = 960
+max = 1600
+step = 40
+description = "Maximum content width in pixels"
+
+[[theme.customizer.settings]]
+id = "sidebar_position"
+section = "layout"
+type = "select"
+label = "Sidebar Position"
+default = "right"
+choices = [
+    { value = "left", label = "Left" },
+    { value = "right", label = "Right" },
+    { value = "none", label = "No Sidebar" },
+]
+
+[[theme.customizer.settings]]
+id = "header_layout"
+section = "header_options"
+type = "select"
+label = "Header Layout"
+default = "standard"
+choices = [
+    { value = "standard", label = "Standard" },
+    { value = "centered", label = "Centered Logo" },
+    { value = "stacked", label = "Stacked" },
+    { value = "transparent", label = "Transparent" },
+]
+
+[[theme.customizer.settings]]
+id = "sticky_header"
+section = "header_options"
+type = "checkbox"
+label = "Sticky Header"
+default = true
+description = "Keep header visible when scrolling"
+
+[[theme.customizer.settings]]
+id = "show_search"
+section = "header_options"
+type = "checkbox"
+label = "Show Search"
+default = true
+description = "Display search icon in header"
+
+[[theme.customizer.settings]]
+id = "footer_layout"
+section = "footer_options"
+type = "select"
+label = "Footer Layout"
+default = "4-columns"
+choices = [
+    { value = "1-column", label = "Single Column" },
+    { value = "2-columns", label = "Two Columns" },
+    { value = "3-columns", label = "Three Columns" },
+    { value = "4-columns", label = "Four Columns" },
+]
+
+[[theme.customizer.settings]]
+id = "footer_copyright"
+section = "footer_options"
+type = "text"
+label = "Copyright Text"
+default = "2024 Your Company. All rights reserved."
+
+[[theme.customizer.settings]]
+id = "show_back_to_top"
+section = "footer_options"
+type = "checkbox"
+label = "Show Back to Top"
+default = true
+description = "Display back-to-top button"
+
+[theme.assets]
+# CSS files
+[[theme.assets.styles]]
+handle = "main"
+src = "assets/css/main.css"
+version = "1.0.0"
+
+[[theme.assets.styles]]
+handle = "dark-mode"
+src = "assets/css/dark-mode.css"
+version = "1.0.0"
+condition = "is_dark_mode"
+
+# JavaScript files
+[[theme.assets.scripts]]
+handle = "theme"
+src = "assets/js/theme.js"
+version = "1.0.0"
+defer = true
+
+[[theme.assets.scripts]]
+handle = "navigation"
+src = "assets/js/navigation.js"
+version = "1.0.0"
+defer = true
+dependencies = ["theme"]
+
+# Google Fonts
+[[theme.assets.fonts]]
+family = "Inter"
+weights = [400, 500, 600, 700]
+display = "swap"
+
+[[theme.assets.fonts]]
+family = "Playfair Display"
+weights = [400, 700]
+display = "swap"
+
+[theme.block_patterns]
+# Register block patterns
+[[theme.block_patterns.categories]]
+name = "business-starter"
+label = "Business Starter"
+
+[[theme.block_patterns.patterns]]
+name = "hero-cta"
+title = "Hero with CTA"
+description = "A full-width hero section with heading and call-to-action"
+categories = ["business-starter", "featured"]
+file = "patterns/hero-cta.html"
+
+[[theme.block_patterns.patterns]]
+name = "features-grid"
+title = "Features Grid"
+description = "A 3-column grid showcasing features"
+categories = ["business-starter"]
+file = "patterns/features-grid.html"
+
+[[theme.block_patterns.patterns]]
+name = "testimonials"
+title = "Testimonials Slider"
+description = "Customer testimonials carousel"
+categories = ["business-starter"]
+file = "patterns/testimonials.html"
+
+[[theme.block_patterns.patterns]]
+name = "team-section"
+title = "Team Section"
+description = "Team members grid with photos and bios"
+categories = ["business-starter"]
+file = "patterns/team-section.html"
+
+[[theme.block_patterns.patterns]]
+name = "pricing-table"
+title = "Pricing Table"
+description = "Pricing plans comparison table"
+categories = ["business-starter"]
+file = "patterns/pricing-table.html"
+
+[[theme.block_patterns.patterns]]
+name = "contact-cta"
+title = "Contact CTA"
+description = "Contact call-to-action section"
+categories = ["business-starter"]
+file = "patterns/contact-cta.html"

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} - {{ site.name }}{% endblock %}
+
+{% block body_class %}page page-{{ page.slug }}{% endblock %}
+
+{% block content %}
+<article class="page" id="page-{{ page.id }}">
+    <header class="page-header">
+        <div class="container container-narrow">
+            <h1 class="page-title">{{ page.title }}</h1>
+        </div>
+    </header>
+
+    {% if page.featured_image %}
+    <div class="page-featured-image">
+        <div class="container">
+            <img src="{{ page.featured_image | image_url(size='hero') }}"
+                 alt="{{ page.title }}"
+                 class="featured-image">
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="page-content-wrapper">
+        <div class="container container-narrow">
+            <div class="page-content entry-content">
+                {{ page.content | safe }}
+            </div>
+        </div>
+    </div>
+</article>
+{% endblock %}

@@ -1,0 +1,276 @@
+# RustPress Blog API - Advanced App Manifest
+[app]
+name = "blog-api"
+display_name = "Blog API"
+version = "1.0.0"
+description = "A comprehensive blog API with posts, categories, tags, comments, and media management"
+author = "RustPress Team"
+license = "MIT"
+homepage = "https://rustpress.dev/apps/blog-api"
+repository = "https://github.com/rustpress/blog-api"
+
+# Minimum RustPress version required
+rustpress_version = ">=0.1.0"
+
+# App entry point
+entry = "src/lib.rs"
+
+[app.routes]
+# Mount all routes under /api/blog
+base_path = "/api/blog"
+
+# Public routes (no auth required)
+[[app.routes.public]]
+path = "/posts"
+methods = ["GET"]
+handler = "handlers::posts::list_posts"
+description = "List published posts with pagination and filtering"
+
+[[app.routes.public]]
+path = "/posts/:slug"
+methods = ["GET"]
+handler = "handlers::posts::get_post_by_slug"
+description = "Get a single post by slug"
+
+[[app.routes.public]]
+path = "/posts/:id/comments"
+methods = ["GET"]
+handler = "handlers::comments::list_comments"
+description = "List comments for a post"
+
+[[app.routes.public]]
+path = "/posts/:id/comments"
+methods = ["POST"]
+handler = "handlers::comments::create_comment"
+description = "Create a new comment (may require moderation)"
+
+[[app.routes.public]]
+path = "/categories"
+methods = ["GET"]
+handler = "handlers::categories::list_categories"
+description = "List all categories"
+
+[[app.routes.public]]
+path = "/tags"
+methods = ["GET"]
+handler = "handlers::tags::list_tags"
+description = "List all tags"
+
+[[app.routes.public]]
+path = "/feed"
+methods = ["GET"]
+handler = "handlers::feed::rss_feed"
+description = "RSS feed of recent posts"
+
+[[app.routes.public]]
+path = "/search"
+methods = ["GET"]
+handler = "handlers::search::search_posts"
+description = "Full-text search across posts"
+
+# Protected routes (auth required)
+[[app.routes.protected]]
+path = "/posts"
+methods = ["POST"]
+handler = "handlers::posts::create_post"
+permissions = ["post:create"]
+description = "Create a new post"
+
+[[app.routes.protected]]
+path = "/posts/:id"
+methods = ["PUT"]
+handler = "handlers::posts::update_post"
+permissions = ["post:update"]
+description = "Update an existing post"
+
+[[app.routes.protected]]
+path = "/posts/:id"
+methods = ["DELETE"]
+handler = "handlers::posts::delete_post"
+permissions = ["post:delete"]
+description = "Delete a post"
+
+[[app.routes.protected]]
+path = "/posts/:id/publish"
+methods = ["POST"]
+handler = "handlers::posts::publish_post"
+permissions = ["post:publish"]
+description = "Publish a draft post"
+
+[[app.routes.protected]]
+path = "/posts/:id/unpublish"
+methods = ["POST"]
+handler = "handlers::posts::unpublish_post"
+permissions = ["post:publish"]
+description = "Unpublish a post back to draft"
+
+[[app.routes.protected]]
+path = "/drafts"
+methods = ["GET"]
+handler = "handlers::posts::list_drafts"
+permissions = ["post:create"]
+description = "List user's draft posts"
+
+[[app.routes.protected]]
+path = "/media"
+methods = ["GET"]
+handler = "handlers::media::list_media"
+permissions = ["media:view"]
+description = "List uploaded media files"
+
+[[app.routes.protected]]
+path = "/media"
+methods = ["POST"]
+handler = "handlers::media::upload_media"
+permissions = ["media:upload"]
+description = "Upload a new media file"
+
+[[app.routes.protected]]
+path = "/media/:id"
+methods = ["DELETE"]
+handler = "handlers::media::delete_media"
+permissions = ["media:delete"]
+description = "Delete a media file"
+
+[[app.routes.protected]]
+path = "/comments/:id/approve"
+methods = ["POST"]
+handler = "handlers::comments::approve_comment"
+permissions = ["comment:moderate"]
+description = "Approve a pending comment"
+
+[[app.routes.protected]]
+path = "/comments/:id/reject"
+methods = ["POST"]
+handler = "handlers::comments::reject_comment"
+permissions = ["comment:moderate"]
+description = "Reject a pending comment"
+
+[[app.routes.protected]]
+path = "/categories"
+methods = ["POST"]
+handler = "handlers::categories::create_category"
+permissions = ["category:manage"]
+description = "Create a new category"
+
+[[app.routes.protected]]
+path = "/categories/:id"
+methods = ["PUT", "DELETE"]
+handler = "handlers::categories::manage_category"
+permissions = ["category:manage"]
+description = "Update or delete a category"
+
+[[app.routes.protected]]
+path = "/tags"
+methods = ["POST"]
+handler = "handlers::tags::create_tag"
+permissions = ["tag:manage"]
+description = "Create a new tag"
+
+[[app.routes.protected]]
+path = "/tags/:id"
+methods = ["PUT", "DELETE"]
+handler = "handlers::tags::manage_tag"
+permissions = ["tag:manage"]
+description = "Update or delete a tag"
+
+# Admin routes
+[[app.routes.admin]]
+path = "/admin/posts"
+methods = ["GET"]
+handler = "handlers::admin::list_all_posts"
+description = "List all posts including drafts from all users"
+
+[[app.routes.admin]]
+path = "/admin/comments/pending"
+methods = ["GET"]
+handler = "handlers::admin::pending_comments"
+description = "List all pending comments"
+
+[[app.routes.admin]]
+path = "/admin/stats"
+methods = ["GET"]
+handler = "handlers::admin::blog_stats"
+description = "Get blog statistics"
+
+[app.middleware]
+# Enable rate limiting
+rate_limit = { enabled = true, requests = 100, window = "60s" }
+
+# Enable response caching
+cache = { enabled = true, default_ttl = "5m" }
+
+# Enable request logging
+logging = { enabled = true, level = "info" }
+
+# Enable CORS
+cors = { enabled = true, origins = ["*"], methods = ["GET", "POST", "PUT", "DELETE"] }
+
+# Custom middleware
+[[app.middleware.custom]]
+name = "post_view_counter"
+handler = "middleware::view_counter::increment_views"
+paths = ["/posts/:slug"]
+methods = ["GET"]
+
+[[app.middleware.custom]]
+name = "content_negotiation"
+handler = "middleware::content::negotiate"
+paths = ["*"]
+
+[app.cache]
+# Cache configuration
+enabled = true
+driver = "redis"
+
+[[app.cache.rules]]
+pattern = "/posts"
+ttl = "5m"
+tags = ["posts", "list"]
+
+[[app.cache.rules]]
+pattern = "/posts/:slug"
+ttl = "10m"
+tags = ["posts", "single"]
+invalidate_on = ["post:updated", "post:deleted"]
+
+[[app.cache.rules]]
+pattern = "/categories"
+ttl = "1h"
+tags = ["categories"]
+
+[[app.cache.rules]]
+pattern = "/tags"
+ttl = "1h"
+tags = ["tags"]
+
+[[app.cache.rules]]
+pattern = "/feed"
+ttl = "15m"
+tags = ["feed", "posts"]
+
+[app.validation]
+# Request validation settings
+max_body_size = "10mb"
+max_upload_size = "50mb"
+allowed_upload_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
+
+[app.search]
+# Full-text search configuration
+enabled = true
+engine = "postgresql"  # or "meilisearch", "elasticsearch"
+fields = ["title", "content", "excerpt"]
+min_query_length = 3
+
+[app.permissions]
+# Define custom permissions for this app
+"post:create" = "Create new posts"
+"post:update" = "Update own posts"
+"post:delete" = "Delete own posts"
+"post:publish" = "Publish posts"
+"media:view" = "View media library"
+"media:upload" = "Upload media files"
+"media:delete" = "Delete media files"
+"comment:moderate" = "Moderate comments"
+"category:manage" = "Manage categories"
+"tag:manage" = "Manage tags"

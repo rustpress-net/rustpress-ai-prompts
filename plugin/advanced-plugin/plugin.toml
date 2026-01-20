@@ -1,0 +1,325 @@
+[plugin]
+id = "rustpress-analytics"
+name = "RustPress Analytics"
+version = "2.0.0"
+description = "Complete analytics solution with real-time tracking, reports, and dashboard"
+author = "RustPress Team"
+author_url = "https://rustpress.net"
+license = "MIT"
+min_rustpress_version = "1.0.0"
+tags = ["analytics", "tracking", "reports", "dashboard", "statistics"]
+category = "marketing"
+icon = "assets/icon.png"
+
+# Dependencies
+[dependencies.plugins]
+"rustpress-cache" = "^1.0"
+
+# Settings Schema
+[settings.schema.tracking_enabled]
+setting_type = "boolean"
+label = "Enable Tracking"
+default = true
+section = "general"
+
+[settings.schema.track_admins]
+setting_type = "boolean"
+label = "Track Admin Users"
+default = false
+section = "general"
+
+[settings.schema.anonymize_ip]
+setting_type = "boolean"
+label = "Anonymize IP Addresses"
+default = true
+section = "privacy"
+
+[settings.schema.data_retention_days]
+setting_type = "integer"
+label = "Data Retention (days)"
+default = 365
+section = "privacy"
+
+[settings.schema.excluded_ips]
+setting_type = "text"
+label = "Excluded IPs (one per line)"
+default = ""
+section = "privacy"
+
+[settings.schema.excluded_paths]
+setting_type = "text"
+label = "Excluded Paths (one per line)"
+default = "/admin\n/api"
+section = "tracking"
+
+[settings.schema.track_outbound_links]
+setting_type = "boolean"
+label = "Track Outbound Links"
+default = true
+section = "tracking"
+
+[settings.schema.track_downloads]
+setting_type = "boolean"
+label = "Track File Downloads"
+default = true
+section = "tracking"
+
+[settings.schema.download_extensions]
+setting_type = "string"
+label = "Download Extensions"
+default = "pdf,zip,doc,docx,xls,xlsx"
+section = "tracking"
+
+[settings.schema.realtime_enabled]
+setting_type = "boolean"
+label = "Enable Real-time Dashboard"
+default = true
+section = "dashboard"
+
+[settings.schema.dashboard_refresh_rate]
+setting_type = "select"
+label = "Dashboard Refresh Rate"
+options = ["5", "10", "30", "60"]
+default = "30"
+section = "dashboard"
+
+[settings.schema.default_date_range]
+setting_type = "select"
+label = "Default Date Range"
+options = ["7d", "30d", "90d", "365d"]
+default = "30d"
+section = "dashboard"
+
+# Lifecycle Hooks
+[hooks]
+activate = "on_activate"
+deactivate = "on_deactivate"
+uninstall = "on_uninstall"
+
+[[hooks.actions]]
+hook = "page_view"
+callback = "track_page_view"
+priority = 100
+
+[[hooks.actions]]
+hook = "user_login"
+callback = "track_user_login"
+priority = 50
+
+[[hooks.actions]]
+hook = "post_publish"
+callback = "track_content_publish"
+priority = 50
+
+[[hooks.filters]]
+hook = "page_footer"
+callback = "inject_tracking_script"
+priority = -100
+
+# REST API
+[api]
+namespace = "analytics"
+version = "v1"
+
+[[api.endpoints]]
+path = "/track"
+method = "POST"
+handler = "track_event"
+permission = "public"
+rate_limit = { requests = 100, window_seconds = 60 }
+
+[[api.endpoints]]
+path = "/pageviews"
+method = "GET"
+handler = "get_pageviews"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/visitors"
+method = "GET"
+handler = "get_visitors"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/realtime"
+method = "GET"
+handler = "get_realtime"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/overview"
+method = "GET"
+handler = "get_overview_report"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/pages"
+method = "GET"
+handler = "get_pages_report"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/referrers"
+method = "GET"
+handler = "get_referrers_report"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/devices"
+method = "GET"
+handler = "get_devices_report"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/geography"
+method = "GET"
+handler = "get_geography_report"
+permission = "view_analytics"
+
+[[api.endpoints]]
+path = "/reports/export"
+method = "POST"
+handler = "export_report"
+permission = "export_analytics"
+
+[[api.endpoints]]
+path = "/settings"
+method = "GET"
+handler = "get_settings"
+permission = "manage_analytics"
+
+[[api.endpoints]]
+path = "/settings"
+method = "PUT"
+handler = "update_settings"
+permission = "manage_analytics"
+
+# Database Migrations
+[migrations]
+directory = "migrations"
+auto_run = true
+
+[[migrations.files]]
+version = "1.0.0"
+file = "001_init.sql"
+
+[[migrations.files]]
+version = "1.1.0"
+file = "002_add_events.sql"
+
+[[migrations.files]]
+version = "2.0.0"
+file = "003_add_sessions.sql"
+
+# Assets
+[[assets.css]]
+path = "assets/css/dashboard.css"
+handle = "analytics-dashboard"
+location = "header"
+admin_only = true
+
+[[assets.js]]
+path = "assets/js/tracker.js"
+handle = "analytics-tracker"
+location = "footer"
+
+[[assets.js]]
+path = "assets/js/dashboard.js"
+handle = "analytics-dashboard"
+location = "footer"
+admin_only = true
+dependencies = ["chart.js", "alpine"]
+
+# Admin Menu
+[[admin.menu]]
+id = "analytics"
+label = "Analytics"
+icon = "chart-bar"
+position = 5
+
+[[admin.pages]]
+id = "analytics-dashboard"
+title = "Dashboard"
+handler = "render_dashboard"
+capability = "view_analytics"
+
+[[admin.pages]]
+id = "analytics-reports"
+title = "Reports"
+handler = "render_reports"
+capability = "view_analytics"
+
+[[admin.pages]]
+id = "analytics-realtime"
+title = "Real-time"
+handler = "render_realtime"
+capability = "view_analytics"
+
+[[admin.pages]]
+id = "analytics-settings"
+title = "Settings"
+handler = "render_settings"
+capability = "manage_analytics"
+
+# Widgets
+[[widgets]]
+id = "analytics-summary"
+name = "Analytics Summary"
+render = "render_summary_widget"
+
+[[widgets]]
+id = "analytics-chart"
+name = "Traffic Chart"
+render = "render_chart_widget"
+
+# Cron Jobs
+[[cron]]
+name = "aggregate_daily"
+handler = "aggregate_daily_stats"
+schedule = "0 1 * * *"
+
+[[cron]]
+name = "cleanup_old_data"
+handler = "cleanup_old_data"
+schedule = "0 3 * * 0"
+
+[[cron]]
+name = "generate_reports"
+handler = "generate_weekly_report"
+schedule = "0 6 * * 1"
+
+# CLI Commands
+[[cli]]
+name = "stats"
+handler = "cli_stats"
+description = "Show analytics statistics"
+
+[[cli.options]]
+name = "period"
+short = "p"
+
+[[cli]]
+name = "export"
+handler = "cli_export"
+description = "Export analytics data"
+
+[[cli.arguments]]
+name = "format"
+required = true
+
+[[cli.options]]
+name = "from"
+short = "f"
+
+[[cli.options]]
+name = "to"
+short = "t"
+
+# Feature Flags
+[features.ai_insights]
+enabled = false
+rollout_percentage = 10
+
+[features.heatmaps]
+enabled = false
+rollout_percentage = 0

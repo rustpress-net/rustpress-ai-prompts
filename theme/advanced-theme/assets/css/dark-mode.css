@@ -1,0 +1,111 @@
+/**
+ * Business Starter Theme - Dark Mode
+ * Automatically applies when data-theme="dark" or system prefers dark
+ */
+
+/* Dark mode via data attribute */
+[data-theme="dark"] {
+    --color-bg: #0f172a;
+    --color-bg-alt: #1e293b;
+    --color-text: #f1f5f9;
+    --color-text-light: #94a3b8;
+    --color-border: #334155;
+
+    /* Adjust shadows for dark mode */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+/* Auto dark mode based on system preference */
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        --color-bg: #0f172a;
+        --color-bg-alt: #1e293b;
+        --color-text: #f1f5f9;
+        --color-text-light: #94a3b8;
+        --color-border: #334155;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    }
+}
+
+/* Dark mode specific adjustments */
+[data-theme="dark"] .post-card,
+[data-theme="dark"] .widget {
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] code:not(pre code) {
+    background: var(--color-bg-alt);
+    color: #f472b6;
+}
+
+[data-theme="dark"] pre {
+    background: #1e293b;
+    border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] img {
+    opacity: 0.9;
+}
+
+[data-theme="dark"] .site-header {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: var(--color-bg-alt);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--color-text-light);
+}
+
+/* Auto mode media query overrides */
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] .post-card,
+    [data-theme="auto"] .widget {
+        border-color: var(--color-border);
+    }
+
+    [data-theme="auto"] code:not(pre code) {
+        background: var(--color-bg-alt);
+        color: #f472b6;
+    }
+
+    [data-theme="auto"] pre {
+        background: #1e293b;
+        border: 1px solid var(--color-border);
+    }
+
+    [data-theme="auto"] img {
+        opacity: 0.9;
+    }
+
+    [data-theme="auto"] .site-header {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(8px);
+    }
+
+    [data-theme="auto"] input,
+    [data-theme="auto"] textarea,
+    [data-theme="auto"] select {
+        background: var(--color-bg-alt);
+        border-color: var(--color-border);
+        color: var(--color-text);
+    }
+}
+
+/* Transition for theme switching */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
