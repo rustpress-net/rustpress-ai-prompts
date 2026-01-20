@@ -2,6 +2,7 @@
 //!
 //! A comprehensive blog API demonstrating advanced app development patterns.
 
+pub mod auth;
 pub mod extractors;
 pub mod handlers;
 pub mod middleware;
@@ -54,6 +55,7 @@ pub struct BlogServices {
     pub tags: services::TagService,
     pub media: services::MediaService,
     pub search: services::SearchService,
+    pub auth: Arc<auth::AuthService>,
 }
 
 #[rustpress_apps::app]
@@ -74,6 +76,15 @@ impl App for BlogApp {
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
+        // Initialize auth configuration from environment
+        let auth_config = auth::AuthConfig::from_env();
+        auth_config
+            .validate()
+            .map_err(|e| AppError::Config(e))?;
+
+        // Initialize auth service
+        let auth_service = Arc::new(auth::AuthService::new(ctx.db.clone(), auth_config));
+
         // Initialize services
         let services = Arc::new(BlogServices {
             posts: services::PostService::new(ctx.db.clone(), ctx.cache.clone()),
@@ -82,6 +93,7 @@ impl App for BlogApp {
             tags: services::TagService::new(ctx.db.clone(), ctx.cache.clone()),
             media: services::MediaService::new(ctx.db.clone(), ctx.storage.clone()),
             search: services::SearchService::new(ctx.db.clone()),
+            auth: auth_service,
         });
 
         self.services = Some(services);
@@ -98,6 +110,26 @@ impl App for BlogApp {
 
     fn routes(&self) -> Router {
         let services = self.services.clone().expect("Services not initialized");
+        let auth_service = services.auth.clone();
+
+        // Auth routes (public - no authentication required)
+        let auth_routes = Router::new()
+            .route("/auth/register", post(auth::handlers::register))
+            .route("/auth/login", post(auth::handlers::login))
+            .route("/auth/logout", post(auth::handlers::logout))
+            .route("/auth/refresh", post(auth::handlers::refresh_token))
+            .route("/auth/forgot-password", post(auth::handlers::forgot_password))
+            .route("/auth/reset-password", post(auth::handlers::reset_password))
+            .route("/auth/verify-email", post(auth::handlers::verify_email))
+            .with_state(auth_service.clone());
+
+        // Auth routes requiring authentication
+        let auth_protected = Router::new()
+            .route("/auth/me", get(auth::handlers::get_current_user))
+            .route("/auth/change-password", post(auth::handlers::change_password))
+            .route("/auth/resend-verification", post(auth::handlers::resend_verification))
+            .layer(axum_middleware::from_fn(middleware::auth::require_auth))
+            .with_state(auth_service);
 
         // Public routes
         let public = Router::new()
@@ -141,6 +173,8 @@ impl App for BlogApp {
 
         // Merge all routes
         Router::new()
+            .merge(auth_routes)
+            .merge(auth_protected)
             .merge(public)
             .merge(protected)
             .merge(admin)

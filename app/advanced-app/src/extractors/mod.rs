@@ -1,24 +1,62 @@
 //! Custom Axum Extractors
+//!
+//! Extractors for authentication and request metadata.
 
 use axum::{
     async_trait,
-    extract::{FromRequestParts, Request},
+    extract::FromRequestParts,
     http::{request::Parts, StatusCode},
     response::{IntoResponse, Response},
-    Json, RequestPartsExt,
+    Json,
 };
+use jsonwebtoken::{decode, DecodingKey, Validation};
+use std::env;
 use uuid::Uuid;
 
-/// Authenticated user information
+use crate::auth::AccessTokenClaims;
+
+/// Authenticated user information extracted from JWT claims
 #[derive(Debug, Clone)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
     pub name: String,
-    pub is_admin: bool,
+    pub role: String,
+    pub email_verified_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+impl User {
+    /// Create user from JWT claims
+    pub fn from_claims(claims: &AccessTokenClaims) -> Self {
+        Self {
+            id: claims.sub,
+            email: claims.email.clone(),
+            name: claims.name.clone(),
+            role: claims.role.clone(),
+            email_verified_at: None, // Not included in JWT, fetch from DB if needed
+        }
+    }
+
+    /// Check if user has admin role
+    pub fn is_admin(&self) -> bool {
+        self.role == "admin"
+    }
+
+    /// Check if user can publish content
+    pub fn can_publish(&self) -> bool {
+        matches!(self.role.as_str(), "author" | "editor" | "admin")
+    }
+
+    /// Check if user can moderate content
+    pub fn can_moderate(&self) -> bool {
+        matches!(self.role.as_str(), "editor" | "admin")
+    }
 }
 
 /// Extractor for authenticated user
+///
+/// This extractor retrieves JWT claims from request extensions (set by middleware)
+/// or validates the JWT token directly if not present in extensions.
 pub struct AuthUser(pub User);
 
 #[async_trait]
@@ -29,44 +67,90 @@ where
     type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        // Get authorization header
+        // First, check if claims were already validated by middleware
+        if let Some(claims) = parts.extensions.get::<AccessTokenClaims>() {
+            return Ok(AuthUser(User::from_claims(claims)));
+        }
+
+        // If not in extensions, validate token directly (for routes without auth middleware)
         let auth_header = parts
             .headers
             .get("Authorization")
             .and_then(|h| h.to_str().ok());
 
-        match auth_header {
-            Some(header) if header.starts_with("Bearer ") => {
-                let token = header.trim_start_matches("Bearer ");
-
-                // In production, this would validate the JWT and extract claims
-                // For this example, we create a mock user
-                let user = User {
-                    id: Uuid::new_v4(),
-                    email: "user@example.com".into(),
-                    name: "Example User".into(),
-                    is_admin: false,
-                };
-
-                Ok(AuthUser(user))
-            }
-            _ => Err((
+        let header = auth_header.ok_or_else(|| {
+            (
                 StatusCode::UNAUTHORIZED,
                 Json(serde_json::json!({
                     "error": "unauthorized",
-                    "message": "Valid authentication token required"
+                    "message": "Authentication required"
                 })),
             )
-                .into_response()),
+                .into_response()
+        })?;
+
+        if !header.starts_with("Bearer ") {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({
+                    "error": "unauthorized",
+                    "message": "Invalid authorization header format"
+                })),
+            )
+                .into_response());
         }
+
+        let token = header.trim_start_matches("Bearer ");
+
+        // Get JWT configuration from environment
+        let secret = env::var("JWT_SECRET").map_err(|_| {
+            tracing::error!("JWT_SECRET environment variable not set");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "error": "configuration_error",
+                    "message": "Server configuration error"
+                })),
+            )
+                .into_response()
+        })?;
+
+        let issuer = env::var("JWT_ISSUER").unwrap_or_else(|_| "rustpress".to_string());
+        let audience = env::var("JWT_AUDIENCE").unwrap_or_else(|_| "rustpress-api".to_string());
+
+        let decoding_key = DecodingKey::from_secret(secret.as_bytes());
+        let mut validation = Validation::default();
+        validation.set_issuer(&[issuer]);
+        validation.set_audience(&[audience]);
+
+        let token_data =
+            decode::<AccessTokenClaims>(token, &decoding_key, &validation).map_err(|e| {
+                tracing::debug!("JWT validation failed: {:?}", e);
+                (
+                    StatusCode::UNAUTHORIZED,
+                    Json(serde_json::json!({
+                        "error": "invalid_token",
+                        "message": "Invalid or expired token"
+                    })),
+                )
+                    .into_response()
+            })?;
+
+        Ok(AuthUser(User::from_claims(&token_data.claims)))
     }
 }
 
 /// Optional authenticated user (doesn't fail if not authenticated)
+#[async_trait]
 impl<S> FromRequestParts<S> for Option<AuthUser>
 where
     S: Send + Sync,
 {
+    type Rejection = std::convert::Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        Ok(AuthUser::from_request_parts(parts, state).await.ok())
+    }
 }
 
 /// Client information (IP, user agent)

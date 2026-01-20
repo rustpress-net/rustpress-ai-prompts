@@ -25,3 +25,9 @@ pulldown-cmark = "0.10"
 rss = "2"
 mime_guess = "2"
 tokio-util = { version = "0.7", features = ["io"] }
+
+# Authentication dependencies
+jsonwebtoken = "9"
+argon2 = "0.5"
+rand = "0.8"
+async-trait = "0.1"
